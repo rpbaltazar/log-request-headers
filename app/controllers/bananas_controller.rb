@@ -1,5 +1,6 @@
 class BananasController < ApplicationController
   before_action :set_banana, only: [:show, :edit, :update, :destroy]
+  around_action :log_everything, only: :index
 
   # GET /bananas
   # GET /bananas.json
@@ -62,13 +63,35 @@ class BananasController < ApplicationController
   end
 
   private
-    # Use callbacks to share common setup or constraints between actions.
-    def set_banana
-      @banana = Banana.find(params[:id])
+
+  # Use callbacks to share common setup or constraints between actions.
+  def set_banana
+    @banana = Banana.find(params[:id])
+  end
+
+  # Never trust parameters from the scary internet, only allow the white list through.
+  def banana_params
+    params.fetch(:banana, {})
+  end
+
+  def log_everything
+    log_headers
+    yield
+  ensure
+    log_response
+  end
+
+  def log_headers
+    http_envs = {}.tap do |envs|
+      request.headers.each do |key, value|
+        envs[key] = value if key.downcase.starts_with?('http')
+      end
     end
 
-    # Never trust parameters from the scary internet, only allow the white list through.
-    def banana_params
-      params.fetch(:banana, {})
-    end
+    logger.info "Received #{request.method.inspect} to #{request.url.inspect} from #{request.remote_ip.inspect}. Processing with headers #{http_envs.inspect} and params #{params.inspect}"
+  end
+
+  def log_response
+    logger.info "Responding with #{response.status.inspect} => #{response.body.inspect}"
+  end
 end
