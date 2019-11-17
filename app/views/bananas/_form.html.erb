@@ -1,0 +1,17 @@
+<%= form_with(model: banana, local: true) do |form| %>
+  <% if banana.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(banana.errors.count, "error") %> prohibited this banana from being saved:</h2>
+
+      <ul>
+        <% banana.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>
